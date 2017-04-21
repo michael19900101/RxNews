@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity{
         titles.add("新闻");
 
         for(int i = 1;i < 7;i++){
-            fragments.add(new TestFragment());
+            fragments.add(new TestFragment(String.valueOf(i)));
             titles.add("测试"+i);
         }
 

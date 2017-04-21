@@ -92,7 +92,7 @@ public class NewsListFragment extends BaseFragment<INewsListPresenter> implement
         mAdapter = new RecyclerView.Adapter<MyViewHolder>() {
             @Override
             public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-                MyViewHolder holder = new MyViewHolder(LayoutInflater.from(getActivity())
+                MyViewHolder holder = new MyViewHolder(LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.item_news_summary, parent,false));
                 return holder;
             }
