@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ThreePointLoadingView">
+        <attr name="pointColor" format="color|reference"/>
+    </declare-styleable>
+    <!--悬浮按钮的颜色-->
+    <attr name="fabColor" format="color|reference"/>
+</resources>

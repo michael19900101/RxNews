@@ -6,6 +6,7 @@ import android.util.SparseArray;
 
 import com.aotuman.mcnews.app.App;
 import com.aotuman.mcnews.base.BaseSchedulerTransformer;
+import com.aotuman.mcnews.bean.NeteastNewsDetail;
 import com.aotuman.mcnews.bean.NeteastNewsSummary;
 import com.aotuman.mcnews.http.service.Api;
 import com.aotuman.mcnews.http.service.HostType;
@@ -189,15 +190,15 @@ public class RetrofitManager {
                 .compose(new BaseSchedulerTransformer<Map<String, List<NeteastNewsSummary>>>());
     }
 
-//    /**
-//     * 网易新闻详情：例子：http://c.m.163.com/nc/article/BG6CGA9M00264N2N/full.html
-//     *
-//     * @param postId 新闻详情的id
-//     * @return 被观察对象
-//     */
-//    public Observable<Map<String, NeteastNewsDetail>> getNewsDetailObservable(String postId) {
-//        return mNewsService.getNewsDetail(postId).compose(new BaseSchedulerTransformer<Map<String, NeteastNewsDetail>>());
-//    }
+    /**
+     * 网易新闻详情：例子：http://c.m.163.com/nc/article/BG6CGA9M00264N2N/full.html
+     *
+     * @param postId 新闻详情的id
+     * @return 被观察对象
+     */
+    public Observable<Map<String, NeteastNewsDetail>> getNewsDetailObservable(String postId) {
+        return mNewsService.getNewsDetail(postId).compose(new BaseSchedulerTransformer<Map<String, NeteastNewsDetail>>());
+    }
 //
 //    /**
 //     * 新浪图片新闻列表 例子：http://api.sina.cn/sinago/list.json?channel=hdpic_pretty&adid=4ad30dabe134695c3b7c3a65977d7e72&wm=b207&from=6042095012&chwm=12050_0001&oldchwm=12050_0001&imei=867064013906290&uid=802909da86d9f5fc&p=1

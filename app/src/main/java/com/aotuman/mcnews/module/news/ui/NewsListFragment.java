@@ -1,29 +1,35 @@
 package com.aotuman.mcnews.module.news.ui;
 
 
+import android.app.ActivityOptions;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.view.LayoutInflater;
+import android.text.TextUtils;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.ProgressBar;
 
+import com.aotuman.mcnews.module.news.ui.adapter.NewsAdapter;
 import com.aotuman.mcnews.R;
 import com.aotuman.mcnews.annotation.ActivityFragmentInject;
 import com.aotuman.mcnews.base.BaseFragment;
 import com.aotuman.mcnews.base.BaseSpacesItemDecoration;
 import com.aotuman.mcnews.bean.NeteastNewsSummary;
+import com.aotuman.mcnews.bean.SinaPhotoDetail;
 import com.aotuman.mcnews.common.DataLoadType;
 import com.aotuman.mcnews.module.news.presenter.INewsListPresenter;
 import com.aotuman.mcnews.module.news.presenter.INewsListPresenterImpl;
 import com.aotuman.mcnews.module.news.view.INewsListView;
+import com.aotuman.mcnews.utils.ClickUtils;
 import com.aotuman.mcnews.utils.MeasureUtil;
+import com.socks.library.KLog;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -46,11 +52,13 @@ public class NewsListFragment extends BaseFragment<INewsListPresenter> implement
     protected String mNewsType;
 
     private RecyclerView mRecyclerView;
-    private RecyclerView.Adapter<MyViewHolder> mAdapter;
-    private List<NeteastNewsSummary> data;
+    private NewsAdapter mAdapter;
+    private List<NeteastNewsSummary> datas;
     // 一般作为ViewPager承载的Fragment都会把位置索引传过来，这里放到基类，
     // 方便下面的initRefreshLayoutOrRecyclerViewEvent()方法处理订阅事件
     protected int mPosition;
+    private ProgressBar mLoadingView;
+    private SinaPhotoDetail mSinaPhotoDetail;
 
     public static NewsListFragment newInstance(String newsId, String newsType, int position) {
         NewsListFragment fragment = new NewsListFragment();
@@ -76,6 +84,7 @@ public class NewsListFragment extends BaseFragment<INewsListPresenter> implement
     @Override
     protected void initView(View fragmentRootView) {
         mRecyclerView = (RecyclerView) fragmentRootView.findViewById(R.id.recycler_view);
+        mLoadingView = (ProgressBar) fragmentRootView.findViewById(R.id.progressbar);
         mPresenter = new INewsListPresenterImpl(this, mNewsId, mNewsType);
     }
 
@@ -86,30 +95,74 @@ public class NewsListFragment extends BaseFragment<INewsListPresenter> implement
         }
     }
 
-    private void initNewsList(final List<NeteastNewsSummary> data) {
-        this.data = data;
+    private void initNewsList(final List<NeteastNewsSummary> datas) {
+        this.datas = datas;
         // mAdapter为空肯定为第一次进入状态
-        mAdapter = new RecyclerView.Adapter<MyViewHolder>() {
+        mAdapter = new NewsAdapter(datas);
+        mAdapter.setOnItemClickListener(new NewsAdapter.OnItemClickListener() {
             @Override
-            public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-                MyViewHolder holder = new MyViewHolder(LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.item_news_summary, parent,false));
-                return holder;
-            }
+            public void onItemClick(View view, int position) {
+                if (ClickUtils.isFastDoubleClick()) {
+                    return;
+                }
 
-            @Override
-            public void onBindViewHolder(MyViewHolder holder, int position) {
-                NeteastNewsSummary item = data.get(position);
-                holder.getTv_news_summary_digest().setText(item.digest);
-                holder.getTv_news_summary_ptime().setText(item.ptime);
-                holder.getTv_news_summary_title().setText(item.title);
-            }
+                // imgextra不为空的话，无新闻内容，直接打开图片浏览
+                KLog.e(datas.get(position).title + ";" + datas.get(position).postid);
 
-            @Override
-            public int getItemCount() {
-                return data.size();
+                view = view.findViewById(R.id.iv_news_summary_photo);
+
+                if (datas.get(position).postid == null) {
+                    toast("此新闻浏览不了哎╮(╯Д╰)╭");
+                    return;
+                }
+
+                // 跳转到新闻详情
+                if (!TextUtils.isEmpty(datas.get(position).digest)) {
+                    Intent intent = new Intent(getActivity(), NewsDetailActivity.class);
+                    intent.putExtra("postid", datas.get(position).postid);
+                    intent.putExtra("imgsrc", datas.get(position).imgsrc);
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                        ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(getActivity(),
+                                view.findViewById(R.id.iv_news_summary_photo), "photos");
+                        getActivity().startActivity(intent, options.toBundle());
+                    } else {
+                        //让新的Activity从一个小的范围扩大到全屏
+                        ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(view, view.getWidth()/* / 2*/, view.getHeight()/* / 2*/, 0, 0);
+                        ActivityCompat.startActivity(getActivity(), intent, options.toBundle());
+                    }
+                } else {
+                    // 以下将数据封装成新浪需要的格式，用于点击跳转到图片浏览
+                    mSinaPhotoDetail = new SinaPhotoDetail();
+                    mSinaPhotoDetail.data = new SinaPhotoDetail.SinaPhotoDetailDataEntity();
+                    mSinaPhotoDetail.data.title = datas.get(position).title;
+                    mSinaPhotoDetail.data.content = "";
+                    mSinaPhotoDetail.data.pics = new ArrayList<>();
+                    // 天啊，什么格式都有 --__--
+                    if (datas.get(position).ads != null) {
+                        for (NeteastNewsSummary.AdsEntity entiity : datas.get(position).ads) {
+                            SinaPhotoDetail.SinaPhotoDetailPicsEntity sinaPicsEntity = new SinaPhotoDetail.SinaPhotoDetailPicsEntity();
+                            sinaPicsEntity.pic = entiity.imgsrc;
+                            sinaPicsEntity.alt = entiity.title;
+                            sinaPicsEntity.kpic = entiity.imgsrc;
+                            mSinaPhotoDetail.data.pics.add(sinaPicsEntity);
+                        }
+                    } else if (datas.get(position).imgextra != null) {
+                        for (NeteastNewsSummary.ImgextraEntity entiity : datas.get(position).imgextra) {
+                            SinaPhotoDetail.SinaPhotoDetailPicsEntity sinaPicsEntity = new SinaPhotoDetail.SinaPhotoDetailPicsEntity();
+                            sinaPicsEntity.pic = entiity.imgsrc;
+                            sinaPicsEntity.kpic = entiity.imgsrc;
+                            mSinaPhotoDetail.data.pics.add(sinaPicsEntity);
+                        }
+                    }
+
+//                    Intent intent = new Intent(getActivity(), PhotoDetailActivity.class);
+//                    intent.putExtra("neteast", mSinaPhotoDetail);
+//                    ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(view, view.getWidth() / 2, view.getHeight() / 2, 0, 0);
+//                    ActivityCompat.startActivity(getActivity(), intent, options.toBundle());
+
+                }
             }
-        };
+        });
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(linearLayoutManager);
@@ -120,36 +173,17 @@ public class NewsListFragment extends BaseFragment<INewsListPresenter> implement
         mRecyclerView.getItemAnimator().setChangeDuration(250);
         mRecyclerView.getItemAnimator().setRemoveDuration(250);
         mRecyclerView.setAdapter(mAdapter);
+
     }
 
-    class MyViewHolder extends RecyclerView.ViewHolder {
-        private TextView tv_news_summary_title;
-        private TextView tv_news_summary_digest;
-        private TextView tv_news_summary_ptime;
-        private ImageView iv_news_summary_photo;
-
-        public MyViewHolder(View view){
-            super(view);
-            tv_news_summary_title = (TextView) view.findViewById(R.id.tv_news_summary_title);
-            tv_news_summary_digest = (TextView) view.findViewById(R.id.tv_news_summary_digest);
-            tv_news_summary_ptime = (TextView) view.findViewById(R.id.tv_news_summary_ptime);
-            iv_news_summary_photo = (ImageView) view.findViewById(R.id.iv_news_summary_photo);
-        }
-
-        public TextView getTv_news_summary_title() {
-            return tv_news_summary_title;
-        }
-
-        public TextView getTv_news_summary_digest() {
-            return tv_news_summary_digest;
-        }
-
-        public TextView getTv_news_summary_ptime() {
-            return tv_news_summary_ptime;
-        }
-
-        public ImageView getIv_news_summary_photo() {
-            return iv_news_summary_photo;
-        }
+    @Override
+    public void showProgress() {
+        mLoadingView.setVisibility(View.VISIBLE);
     }
+
+    @Override
+    public void hideProgress() {
+        mLoadingView.setVisibility(View.GONE);
+    }
+
 }
