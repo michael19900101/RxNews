@@ -16,6 +16,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,10 +25,17 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-
 import com.aotuman.mcnews.BuildConfig;
+import com.aotuman.mcnews.NewsActivity;
 import com.aotuman.mcnews.R;
 import com.aotuman.mcnews.annotation.ActivityFragmentInject;
+import com.aotuman.mcnews.app.App;
+import com.aotuman.mcnews.app.AppManager;
+import com.aotuman.mcnews.slideback.SlideBackHelper;
+import com.aotuman.mcnews.slideback.SlideConfig;
+import com.aotuman.mcnews.slideback.widget.SlideBackLayout;
+import com.aotuman.mcnews.utils.GlideCircleTransform;
+import com.aotuman.mcnews.utils.GlideUtils;
 import com.aotuman.mcnews.utils.MeasureUtil;
 import com.aotuman.mcnews.utils.SpUtil;
 import com.aotuman.mcnews.utils.ThemeUtil;
@@ -35,7 +43,6 @@ import com.aotuman.mcnews.utils.ViewUtil;
 import com.socks.library.KLog;
 
 import rx.Observable;
-import rx.functions.Action1;
 
 /**
  * ClassName: BaseActivity<p>
@@ -76,6 +83,12 @@ public abstract class BaseActivity<T extends BasePresenter> extends AppCompatAct
      * 侧滑导航布局
      */
     protected NavigationView mNavigationView;
+
+    /**
+     * 控制滑动与否的接口
+     */
+    //    protected SlidrInterface mSlidrInterface;
+    protected SlideBackLayout mSlideBackLayout;
 
     /**
      * 菜单的id
@@ -130,9 +143,30 @@ public abstract class BaseActivity<T extends BasePresenter> extends AppCompatAct
             StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll().penaltyLog().build());
         }
 
+//        if (this instanceof SettingsActivity) {
+//            SkinManager.getInstance().register(this);
+//        }
+
         initTheme();
 
         setContentView(mContentViewId);
+
+        if (mEnableSlidr && !SpUtil.readBoolean("disableSlide")) {
+            // 默认开启侧滑，默认是整个页码侧滑
+            mSlideBackLayout = SlideBackHelper.attach(this, App.getActivityHelper(), new SlideConfig.Builder()
+                    // 是否侧滑
+                    .edgeOnly(SpUtil.readBoolean("enableSlideEdge"))
+                    // 是否会屏幕旋转
+                    .rotateScreen(false)
+                    // 是否禁止侧滑
+                    .lock(false)
+                    // 侧滑的响应阈值，0~1，对应屏幕宽度*percent
+                    .edgePercent(0.1f)
+                    // 关闭页面的阈值，0~1，对应屏幕宽度*percent
+                    .slideOutPercent(0.35f).create(), null);
+
+
+        }
 
         if (mHasNavigationView) {
             initNavigationView();
@@ -178,41 +212,41 @@ public abstract class BaseActivity<T extends BasePresenter> extends AppCompatAct
      * 初始化主题
      */
     private void initTheme() {
-//        if (this instanceof NewsActivity) {
-//            setTheme(SpUtil.readBoolean("enableNightMode") ? R.style.BaseAppThemeNight_LauncherAppTheme : R.style.BaseAppTheme_LauncherAppTheme);
-//        } else if (!mEnableSlidr && mHasNavigationView) {
-//            setTheme(SpUtil.readBoolean("enableNightMode") ? R.style.BaseAppThemeNight_AppTheme : R.style.BaseAppTheme_AppTheme);
-//        } else {
-//            setTheme(SpUtil.readBoolean("enableNightMode") ? R.style.BaseAppThemeNight_SlidrTheme : R.style.BaseAppTheme_SlidrTheme);
-//        }
+        if (this instanceof NewsActivity) {
+            setTheme(SpUtil.readBoolean("enableNightMode") ? R.style.BaseAppThemeNight_LauncherAppTheme : R.style.BaseAppTheme_LauncherAppTheme);
+        } else if (!mEnableSlidr && mHasNavigationView) {
+            setTheme(SpUtil.readBoolean("enableNightMode") ? R.style.BaseAppThemeNight_AppTheme : R.style.BaseAppTheme_AppTheme);
+        } else {
+            setTheme(SpUtil.readBoolean("enableNightMode") ? R.style.BaseAppThemeNight_SlidrTheme : R.style.BaseAppTheme_SlidrTheme);
+        }
     }
 
     private void initToolbar() {
 
         // 针对父布局非DrawerLayout的状态栏处理方式
         // 设置toolbar上面的View实现类状态栏效果，这里是因为状态栏设置为透明的了，而默认背景是白色的，不设的话状态栏处就是白色
-//        final View statusView = findViewById(R.id.status_view);
-//        if (statusView != null) {
-//            statusView.getLayoutParams().height = MeasureUtil.getStatusBarHeight(this);
-//        }
-//
-//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        if (toolbar != null) {
-//            // 24.0.0版本后导航图标会有默认的与标题的距离，这里设置去掉
-//            toolbar.setContentInsetStartWithNavigation(0);
-//            setSupportActionBar(toolbar);
-//            if (getSupportActionBar() != null) {
-//                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-//            }
-//            if (mToolbarTitle != -1) {
-//                setToolbarTitle(mToolbarTitle);
-//            }
-//            if (mToolbarIndicator != -1) {
-//                setToolbarIndicator(mToolbarIndicator);
-//            } else {
-//                setToolbarIndicator(R.drawable.ic_menu_back);
-//            }
-//        }
+        final View statusView = findViewById(R.id.status_view);
+        if (statusView != null) {
+            statusView.getLayoutParams().height = MeasureUtil.getStatusBarHeight(this);
+        }
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            // 24.0.0版本后导航图标会有默认的与标题的距离，这里设置去掉
+            toolbar.setContentInsetStartWithNavigation(0);
+            setSupportActionBar(toolbar);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            }
+            if (mToolbarTitle != -1) {
+                setToolbarTitle(mToolbarTitle);
+            }
+            if (mToolbarIndicator != -1) {
+                setToolbarIndicator(mToolbarIndicator);
+            } else {
+                setToolbarIndicator(R.drawable.ic_menu_back);
+            }
+        }
     }
 
     protected void setToolbarIndicator(int resId) {
@@ -245,85 +279,99 @@ public abstract class BaseActivity<T extends BasePresenter> extends AppCompatAct
 
     private void initNavigationView() {
 
-//        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-//
-//        handleStatusView();
-//
-//        handleAppBarLayoutOffset();
-//
-//        mNavigationView = (NavigationView) findViewById(R.id.navigation_view);
-//        if (mMenuDefaultCheckedItem != -1 && mNavigationView != null) {
-//            mNavigationView.setCheckedItem(mMenuDefaultCheckedItem);
-//        }
-//        mNavigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-//            @Override
-//            public boolean onNavigationItemSelected(MenuItem item) {
-//                if (item.isChecked()) {
-//                    return true;
-//                }
-//                switch (item.getItemId()) {
-//                    case R.id.action_news:
-//                        mClass = NewsActivity.class;
-//                        break;
-//                    case R.id.action_video:
-//                        mClass = VideoActivity.class;
-//                        break;
-//                    case R.id.action_photo:
-//                        mClass = PhotoActivity.class;
-//                        break;
-//                    case R.id.action_settings:
-//                        mClass = SettingsActivity.class;
-//                        break;
-//                }
-//                mDrawerLayout.closeDrawer(GravityCompat.START);
-//                return false;
-//            }
-//        });
-//        mNavigationView.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                final ImageView imageView = (ImageView) BaseActivity.this.findViewById(R.id.avatar);
-//                if (imageView != null) {
-//                    GlideUtils.loadDefaultTransformation(R.drawable.ic_header, imageView, false, null, new GlideCircleTransform(imageView.getContext()), null);
-//                    //                    Glide.with(mNavigationView.getContext()).load(R.drawable.ic_header).animate(R.anim.image_load).transform(new GlideCircleTransform(mNavigationView.getContext()))
-//                    //                            .into(imageView);
-//                }
-//            }
-//        });
-//        mDrawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
-//
-//            @Override
-//            public void onDrawerClosed(View drawerView) {
-//                if (mClass != null) {
-//                    showActivityReorderToFront(BaseActivity.this, mClass, false);
-//                    mClass = null;
-//                }
-//            }
-//        });
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 
+        handleStatusView();
+
+        handleAppBarLayoutOffset();
+
+        mNavigationView = (NavigationView) findViewById(R.id.navigation_view);
+        if (mMenuDefaultCheckedItem != -1 && mNavigationView != null) {
+            mNavigationView.setCheckedItem(mMenuDefaultCheckedItem);
+        }
+        mNavigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(MenuItem item) {
+                if (item.isChecked()) {
+                    return true;
+                }
+                switch (item.getItemId()) {
+                    case R.id.action_news:
+                        mClass = NewsActivity.class;
+                        break;
+                    case R.id.action_video:
+//                        mClass = VideoActivity.class;
+                        break;
+                    case R.id.action_photo:
+//                        mClass = PhotoActivity.class;
+                        break;
+                    case R.id.action_settings:
+//                        mClass = SettingsActivity.class;
+                        break;
+                }
+                mDrawerLayout.closeDrawer(GravityCompat.START);
+                return false;
+            }
+        });
+        mNavigationView.post(new Runnable() {
+            @Override
+            public void run() {
+                final ImageView imageView = (ImageView) BaseActivity.this.findViewById(R.id.avatar);
+                if (imageView != null) {
+                    GlideUtils.loadDefaultTransformation(R.drawable.ic_header, imageView, false, null, new GlideCircleTransform(imageView.getContext()), null);
+                    //                    Glide.with(mNavigationView.getContext()).load(R.drawable.ic_header).animate(R.anim.image_load).transform(new GlideCircleTransform(mNavigationView.getContext()))
+                    //                            .into(imageView);
+                }
+            }
+        });
+        mDrawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                if (mClass != null) {
+                    showActivityReorderToFront(BaseActivity.this, mClass, false);
+                    mClass = null;
+                }
+            }
+        });
+
+    }
+
+    public void showActivityReorderToFront(Activity aty, Class<?> cls, boolean backPress) {
+
+        App.getActivityHelper().addActivity(cls);
+
+        AppManager.getAppManager().orderNavActivity(cls.getName(), backPress);
+
+        Intent intent = new Intent();
+        intent.setClass(aty, cls);
+        // 此标志用于启动一个Activity的时候，若栈中存在此Activity实例，则把它调到栈顶。不创建多一个
+        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        aty.startActivity(intent);
+        overridePendingTransition(0, 0);
     }
 
     /**
      * 处理与AppBarLayout偏移量相关事件处理
      */
     private void handleAppBarLayoutOffset() {
-//        final AppBarLayout appBarLayout = (AppBarLayout) findViewById(R.id.app_bar);
-//        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        if (appBarLayout != null && toolbar != null) {
-//            final int toolbarHeight = MeasureUtil.getToolbarHeight(this);
-//            appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
-//                @Override
-//                public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
-//                    if (Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT || BaseActivity.this instanceof SettingsActivity) {
-//                        // appBarLayout偏移量为Toolbar高度，这里为了4.4往上滑的时候由于透明状态栏Toolbar遮不住看起来难看，
-//                        // 根据偏移量设置透明度制造出往上滑动逐渐消失的效果
-//                        toolbar.setAlpha((toolbarHeight + verticalOffset) * 1.0f / toolbarHeight);
-//                    }
-//                    // AppBarLayout没有偏移量时，告诉Fragment刷新控件可用
+        final AppBarLayout appBarLayout = (AppBarLayout) findViewById(R.id.app_bar);
+        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        if (appBarLayout != null && toolbar != null) {
+            final int toolbarHeight = MeasureUtil.getToolbarHeight(this);
+            appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+                @Override
+                public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                    if (Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT ) {
+                        // appBarLayout偏移量为Toolbar高度，这里为了4.4往上滑的时候由于透明状态栏Toolbar遮不住看起来难看，
+                        // 根据偏移量设置透明度制造出往上滑动逐渐消失的效果
+                        toolbar.setAlpha((toolbarHeight + verticalOffset) * 1.0f / toolbarHeight);
+                    }
+                    // AppBarLayout没有偏移量时，告诉Fragment刷新控件可用
 //                    RxBus.get().post("enableRefreshLayoutOrScrollRecyclerView", verticalOffset == 0);
-//                }
-//            });
-//        }
+                }
+            });
+        }
     }
 
     /**

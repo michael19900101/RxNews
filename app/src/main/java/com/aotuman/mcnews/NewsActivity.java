@@ -22,6 +22,8 @@ import java.util.List;
  * Created by aotuman on 2017/5/2.
  */
 @ActivityFragmentInject(contentViewId = R.layout.activity_main,
+        hasNavigationView = true,
+        toolbarIndicator = R.drawable.ic_list_white,
         toolbarTitle = R.string.app_name)
 public class NewsActivity extends BaseActivity<INewsPresenter> implements INewsView{
     private TabLayout tabLayout;
@@ -30,6 +32,8 @@ public class NewsActivity extends BaseActivity<INewsPresenter> implements INewsV
 
     @Override
     protected void initView() {
+        ViewUtil.quitFullScreen(this);
+
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
         viewPager = (ViewPager) findViewById(R.id.viewPager);
         toolBar = (Toolbar) findViewById(R.id.toolBar);

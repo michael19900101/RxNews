@@ -68,7 +68,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.MyViewHolder> 
     //获取数据的数量
     @Override
     public int getItemCount() {
-        return datas.size();
+        return datas !=null ?datas.size():0;
     }
 
     //自定义的ViewHolder，持有每个Item的的所有界面元素

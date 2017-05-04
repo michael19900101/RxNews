@@ -1,17 +1,45 @@
 <resources>
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-        <!-- Customize your theme here. -->
-        <!-- Actionbar color -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <!--Status bar color-->
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <!--Window color-->
-        <item name="android:windowBackground">@color/dim_foreground_material_dark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+    <style name="BaseAppTheme.AppTheme">
+        <!--<item name="android:windowAnimationStyle">@style/noAnimation</item>-->
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+    </style>
+
+    <style name="BaseAppTheme.LauncherAppTheme">
+        <!--<item name="android:windowAnimationStyle">@style/noAnimation</item>-->
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowBackground">@color/material_white</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+    </style>
+
+    <style name="BaseAppTheme.SlidrTheme">
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/white</item>
+    </style>
+
+    <style name="BaseAppThemeNight.AppTheme">
+        <!--<item name="android:windowAnimationStyle">@style/noAnimation</item>-->
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+    </style>
+
+    <style name="BaseAppThemeNight.LauncherAppTheme">
+        <!--<item name="android:windowAnimationStyle">@style/noAnimation</item>-->
+        <item name="android:windowFullscreen">true</item>
+        <!--<item name="android:windowBackground">@drawable/ic_launcher_bg</item>-->
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+    </style>
+
+    <style name="BaseAppThemeNight.SlidrTheme">
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
     </style>
 
 </resources>

@@ -39,7 +39,7 @@ public class GlideUtils {
      * @param diskcacheStrategy 硬盘缓存策略
      */
     public static void loadDefaultOverrideNoAnim(Object loadObj, ImageView imageView, int overrideW, int overrideH, Boolean asGif, DecodeFormat format, DiskCacheStrategy diskcacheStrategy) {
-        load(imageView.getContext(), loadObj, imageView, overrideW, overrideH, R.mipmap.ic_loading, R.mipmap.ic_fail, 0, asGif, format, null, diskcacheStrategy);
+        load(imageView.getContext(), loadObj, imageView, overrideW, overrideH, R.drawable.ic_loading, R.drawable.ic_fail, 0, asGif, format, null, diskcacheStrategy);
     }
 
     /**
@@ -53,7 +53,7 @@ public class GlideUtils {
      * @param diskcacheStrategy 硬盘缓存策略
      */
     public static void loadDefaultTransformation(Object loadObj, ImageView imageView, Boolean asGif, DecodeFormat format, Transformation transformation, DiskCacheStrategy diskcacheStrategy) {
-        load(imageView.getContext(), loadObj, imageView, 0, 0, R.mipmap.ic_loading, R.mipmap.ic_fail, R.anim.image_load, asGif, format, transformation,
+        load(imageView.getContext(), loadObj, imageView, 0, 0, R.drawable.ic_loading, R.drawable.ic_fail, R.anim.image_load, asGif, format, transformation,
                 diskcacheStrategy);
     }
 
@@ -67,7 +67,7 @@ public class GlideUtils {
      * @param diskcacheStrategy 硬盘缓存策略
      */
     public static void loadDefault(Object loadObj, ImageView imageView, Boolean asGif, DecodeFormat format, DiskCacheStrategy diskcacheStrategy) {
-        load(imageView.getContext(), loadObj, imageView, 0, 0, R.mipmap.ic_loading, R.mipmap.ic_fail, R.anim.image_load, asGif, format, null, diskcacheStrategy);
+        load(imageView.getContext(), loadObj, imageView, 0, 0, R.drawable.ic_loading, R.drawable.ic_fail, R.anim.image_load, asGif, format, null, diskcacheStrategy);
     }
 
     /**
@@ -80,7 +80,7 @@ public class GlideUtils {
      * @param diskcacheStrategy 硬盘缓存策略
      */
     public static void loadDefaultNoAnim(Object loadObj, ImageView imageView, Boolean asGif, DecodeFormat format, DiskCacheStrategy diskcacheStrategy) {
-        load(imageView.getContext(), loadObj, imageView, 0, 0, R.mipmap.ic_loading, R.mipmap.ic_fail, 0, asGif, format, null, diskcacheStrategy);
+        load(imageView.getContext(), loadObj, imageView, 0, 0, R.drawable.ic_loading, R.drawable.ic_fail, 0, asGif, format, null, diskcacheStrategy);
     }
 
     /**

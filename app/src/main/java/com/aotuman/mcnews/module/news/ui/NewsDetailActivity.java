@@ -116,10 +116,10 @@ public class NewsDetailActivity extends BaseActivity<INewsDetailPresenter> imple
             final String mp4HdUrl = video.mp4HdUrl;
             final String mp4Url = video.mp4Url;
             if (!TextUtils.isEmpty(mp4HdUrl)) {
-                mFab.setImageResource(R.mipmap.ic_play_normal);
+                mFab.setImageResource(R.drawable.ic_play_normal);
                 mFab.setTag(mp4HdUrl);
             } else if (!TextUtils.isEmpty(mp4Url)) {
-                mFab.setImageResource(R.mipmap.ic_play_normal);
+                mFab.setImageResource(R.drawable.ic_play_normal);
                 mFab.setTag(mp4Url);
             }
 

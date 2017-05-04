@@ -8,6 +8,7 @@ import com.aotuman.mcnews.BuildConfig;
 import com.aotuman.mcnews.common.Constant;
 import com.aotuman.mcnews.greendao.DaoMaster;
 import com.aotuman.mcnews.greendao.DaoSession;
+import com.aotuman.mcnews.slideback.ActivityHelper;
 
 import de.greenrobot.dao.query.QueryBuilder;
 
@@ -23,12 +24,16 @@ public class App extends Application {
 
     private static Context sApplicationContext;
     private DaoSession mDaoSession;
+    private ActivityHelper mActivityHelper;
 
     @Override
     public void onCreate() {
         super.onCreate();
         sApplicationContext = this;
         setupDatabase();
+
+        mActivityHelper = new ActivityHelper();
+        registerActivityLifecycleCallbacks(mActivityHelper);
     }
 
     @Override
@@ -67,4 +72,7 @@ public class App extends Application {
         return sApplicationContext;
     }
 
+    public static ActivityHelper getActivityHelper() {
+        return ((App)sApplicationContext).mActivityHelper;
+    }
 }
